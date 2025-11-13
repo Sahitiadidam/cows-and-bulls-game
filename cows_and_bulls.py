@@ -11,7 +11,12 @@ def valid_secret(s):
 def check_cows_bulls(secret, guess):
     bulls = sum(s == g for s, g in zip(secret, guess))
     cows = sum(min(secret.count(d), guess.count(d)) for d in set(guess)) - bulls
-    return cows, bulls
+    
+    bull_positions = [i+1 for i, (s, g) in enumerate(zip(secret, guess)) if s == g]
+    cow_positions = [i+1 for i, g in enumerate(guess) if g in secret and g != secret[i]]
+    
+    return cows, bulls, bull_positions, cow_positions
+
 
 def reset_game():
     keys = [
