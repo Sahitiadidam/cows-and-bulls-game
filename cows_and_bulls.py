@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 # --- Page config ---
@@ -12,10 +11,8 @@ def valid_secret(s):
 def check_cows_bulls(secret, guess):
     bulls = sum(s == g for s, g in zip(secret, guess))
     cows = sum(min(secret.count(d), guess.count(d)) for d in set(guess)) - bulls
-
     bull_positions = [i+1 for i, (s, g) in enumerate(zip(secret, guess)) if s == g]
     cow_positions = [i+1 for i, g in enumerate(guess) if g in secret and g != secret[i]]
-
     return cows, bulls, bull_positions, cow_positions
 
 def reset_game():
@@ -84,20 +81,19 @@ else:
     st.subheader(f"Player {st.session_state.turn}'s Turn")
     st.write("Hint: Bulls = correct digit in correct position. Cows = correct digit wrong position.")
 
-    # Show history
-    with st.expander("📚 Guess History (click to open)"):
+    # Show history (scoreboard)
+    with st.expander("📚 Guess History"):
         st.write("Player 1 guesses:")
         if st.session_state.history1:
             for g, c, b, bp, cp in st.session_state.history1:
-                st.write(f"- {g} → Bulls: {b} (positions: {bp}), Cows: {c} (positions: {cp})")
+                st.write(f"- {g} → Bulls: {b} (positions: {bp}) | Cows: {c} (positions: {cp})")
         else:
             st.write("- No guesses yet.")
-
         st.write("---")
         st.write("Player 2 guesses:")
         if st.session_state.history2:
             for g, c, b, bp, cp in st.session_state.history2:
-                st.write(f"- {g} → Bulls: {b} (positions: {bp}), Cows: {c} (positions: {cp})")
+                st.write(f"- {g} → Bulls: {b} (positions: {bp}) | Cows: {c} (positions: {cp})")
         else:
             st.write("- No guesses yet.")
 
@@ -113,6 +109,7 @@ else:
                 secret = st.session_state.player2_secret if st.session_state.turn == 1 else st.session_state.player1_secret
                 cows, bulls, bull_pos, cow_pos = check_cows_bulls(secret, guess)
 
+                # store history
                 if st.session_state.turn == 1:
                     st.session_state.history1.append((guess, cows, bulls, bull_pos, cow_pos))
                 else:
