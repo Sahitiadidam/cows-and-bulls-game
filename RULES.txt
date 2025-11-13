@@ -1,0 +1,38 @@
+🐮 COWS & BULLS — TWO PLAYER GAME
+
+🎯 Objective:
+Guess your opponent's secret 4-digit number before they guess yours!
+
+Each number:
+- Must contain 4 unique digits (0–9)
+- Cannot start with zero
+
+---
+
+🕹️ How to Play:
+1. Both players secretly choose a 4-digit number with unique digits.
+2. Players take turns guessing each other's numbers.
+3. After each guess, feedback is given:
+   - 🐂 Bulls = digits in the correct position
+   - 🐮 Cows = digits present but in the wrong position
+4. Example:
+   - Secret: 4271
+   - Guess: 1234
+   - Result: 1 Bull (2) and 2 Cows (4, 1)
+
+---
+
+🏆 Winning the Game:
+- The first player to get **4 Bulls** (i.e., guess all digits in the correct order) wins!
+
+---
+
+💡 Additional Info:
+- Each wrong guess will show “Wrong Guess! Try Again!” with cows & bulls count.
+- You can view the guess history and scoreboard anytime.
+- Use the 🔁 Restart button to play again.
+
+---
+
+Enjoy playing this fun logic and deduction game with friends and family!
+Created by: ADIDAM SAHITI
