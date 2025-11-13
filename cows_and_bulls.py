@@ -8,6 +8,13 @@ st.title("🐮 Cows & Bulls — Two Player")
 def valid_secret(s):
     return s.isdigit() and len(s) == 4 and len(set(s)) == 4
 
+def check_cows_bulls(secret, guess):
+    bulls = sum(s == g for s, g in zip(secret, guess))
+    cows = sum(min(secret.count(d), guess.count(d)) for d in set(guess)) - bulls
+    bull_positions = [i+1 for i, (s, g) in enumerate(zip(secret, guess)) if s == g]
+    cow_positions = [i+1 for i, g in enumerate(guess) if g in secret and g != secret[i]]
+    return cows, bulls, bull_positions, cow_positions
+
 def reset_game():
     keys = ["player1_secret", "player2_secret", "secrets_set", "turn", "winner", "history1", "history2"]
     for k in keys:
@@ -18,15 +25,15 @@ def reset_game():
     st.session_state["history2"] = []
     st.session_state["winner"] = None
 
-# --- Session state initialization ---
+# --- Initialize session state ---
 for key in ["player1_secret", "player2_secret", "secrets_set", "turn", "winner", "history1", "history2"]:
     if key not in st.session_state:
-        st.session_state[key] = None if key not in ["turn", "history1", "history2"] else (1 if key=="turn" else [])
-
-if st.session_state.secrets_set is None:
-    st.session_state.secrets_set = False
-if st.session_state.turn is None:
-    st.session_state.turn = 1
+        if key == "turn":
+            st.session_state[key] = 1
+        elif key in ["history1", "history2"]:
+            st.session_state[key] = []
+        else:
+            st.session_state[key] = None
 
 st.markdown("Enter secret numbers for Player 1 and Player 2. They will be hidden from the other player.")
 
@@ -61,13 +68,13 @@ if not st.session_state.secrets_set:
             st.warning("Both secrets are identical — consider using different secrets.")
         if st.button("✅ Start Game"):
             st.session_state.secrets_set = True
-            st.rerun()  # updated here
+            st.rerun()
 
     st.divider()
     st.info("Secrets are stored in this browser session only. Reloading page will reset the game unless you use the Restart button below.")
     if st.button("🔁 Restart/Reset"):
         reset_game()
-        st.rerun()  # updated here
+        st.rerun()
 
 # --- Gameplay ---
 else:
@@ -78,16 +85,16 @@ else:
     with st.expander("📚 Guess History (click to open)"):
         st.write("Player 1 guesses:")
         if st.session_state.history1:
-            for g, b_count, c_count, b_pos, c_pos in st.session_state.history1:
-                st.write(f"- {g} → 🐂 Bulls: {b_count} (positions: {b_pos}) | 🐮 Cows: {c_count} (positions: {c_pos})")
+            for g, c, b, bp, cp in st.session_state.history1:
+                st.write(f"- {g} → Bulls: {b} (positions: {bp}), Cows: {c} (positions: {cp})")
         else:
             st.write("- No guesses yet.")
 
         st.write("---")
         st.write("Player 2 guesses:")
         if st.session_state.history2:
-            for g, b_count, c_count, b_pos, c_pos in st.session_state.history2:
-                st.write(f"- {g} → 🐂 Bulls: {b_count} (positions: {b_pos}) | 🐮 Cows: {c_count} (positions: {c_pos})")
+            for g, c, b, bp, cp in st.session_state.history2:
+                st.write(f"- {g} → Bulls: {b} (positions: {bp}), Cows: {c} (positions: {cp})")
         else:
             st.write("- No guesses yet.")
 
@@ -101,31 +108,27 @@ else:
                 st.warning("Enter a 4-digit numeric guess.")
             else:
                 secret = st.session_state.player2_secret if st.session_state.turn == 1 else st.session_state.player1_secret
+                cows, bulls, bull_pos, cow_pos = check_cows_bulls(secret, guess)
 
-                # Calculate bulls and cows
-                bulls = [i+1 for i, (s,g) in enumerate(zip(secret, guess)) if s == g]
-                cows = [i+1 for i, g in enumerate(guess) if g in secret and g != secret[i]]
-                bull_count = len(bulls)
-                cow_count = len(cows)
-
-                # Update history
+                # Store history
                 if st.session_state.turn == 1:
-                    st.session_state.history1.append((guess, bull_count, cow_count, bulls, cows))
+                    st.session_state.history1.append((guess, cows, bulls, bull_pos, cow_pos))
                 else:
-                    st.session_state.history2.append((guess, bull_count, cow_count, bulls, cows))
+                    st.session_state.history2.append((guess, cows, bulls, bull_pos, cow_pos))
 
-                # Display feedback
-                if bull_count == 4:
+                # Feedback
+                if bulls == 4:
                     st.session_state.winner = st.session_state.turn
                     st.success(f"🎉 Player {st.session_state.turn} guessed it right and wins!")
                     st.balloons()
                 else:
-                    st.info(f"❌ Wrong guess!\n🐂 Bulls: {bull_count} (positions: {bulls}) | 🐮 Cows: {cow_count} (positions: {cows})")
+                    st.error(f"❌ Wrong guess! 🐂 Bulls: {bulls} (positions: {bull_pos}) | 🐮 Cows: {cows} (positions: {cow_pos})")
+                    st.info(f"Next turn: Player {2 if st.session_state.turn == 1 else 1}")
+                    # Switch turn
                     st.session_state.turn = 2 if st.session_state.turn == 1 else 1
-                    st.info(f"Now it's Player {st.session_state.turn}'s turn.")
-                    st.rerun()  # updated here
+                    st.rerun()
 
     st.divider()
     if st.button("🔁 Restart Game"):
         reset_game()
-        st.rerun()  # updated here
+        st.rerun()
