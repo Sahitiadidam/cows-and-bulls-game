@@ -1,3 +1,4 @@
+
 import streamlit as st
 
 # --- Page config ---
@@ -11,8 +12,10 @@ def valid_secret(s):
 def check_cows_bulls(secret, guess):
     bulls = sum(s == g for s, g in zip(secret, guess))
     cows = sum(min(secret.count(d), guess.count(d)) for d in set(guess)) - bulls
+
     bull_positions = [i+1 for i, (s, g) in enumerate(zip(secret, guess)) if s == g]
     cow_positions = [i+1 for i, g in enumerate(guess) if g in secret and g != secret[i]]
+
     return cows, bulls, bull_positions, cow_positions
 
 def reset_game():
@@ -25,15 +28,15 @@ def reset_game():
     st.session_state["history2"] = []
     st.session_state["winner"] = None
 
-# --- Initialize session state ---
+# --- Session state initialization ---
 for key in ["player1_secret", "player2_secret", "secrets_set", "turn", "winner", "history1", "history2"]:
     if key not in st.session_state:
-        if key == "turn":
-            st.session_state[key] = 1
-        elif key in ["history1", "history2"]:
-            st.session_state[key] = []
-        else:
-            st.session_state[key] = None
+        st.session_state[key] = None if key not in ["turn", "history1", "history2"] else (1 if key=="turn" else [])
+
+if st.session_state.secrets_set is None:
+    st.session_state.secrets_set = False
+if st.session_state.turn is None:
+    st.session_state.turn = 1
 
 st.markdown("Enter secret numbers for Player 1 and Player 2. They will be hidden from the other player.")
 
@@ -110,21 +113,17 @@ else:
                 secret = st.session_state.player2_secret if st.session_state.turn == 1 else st.session_state.player1_secret
                 cows, bulls, bull_pos, cow_pos = check_cows_bulls(secret, guess)
 
-                # Store history
                 if st.session_state.turn == 1:
                     st.session_state.history1.append((guess, cows, bulls, bull_pos, cow_pos))
                 else:
                     st.session_state.history2.append((guess, cows, bulls, bull_pos, cow_pos))
 
-                # Feedback
                 if bulls == 4:
                     st.session_state.winner = st.session_state.turn
                     st.success(f"🎉 Player {st.session_state.turn} guessed it right and wins!")
                     st.balloons()
                 else:
-                    st.error(f"❌ Wrong guess! 🐂 Bulls: {bulls} (positions: {bull_pos}) | 🐮 Cows: {cows} (positions: {cow_pos})")
-                    st.info(f"Next turn: Player {2 if st.session_state.turn == 1 else 1}")
-                    # Switch turn
+                    st.info(f"❌ Wrong guess! 🐂 Bulls: {bulls} (positions: {bull_pos}) | 🐮 Cows: {cows} (positions: {cow_pos})")
                     st.session_state.turn = 2 if st.session_state.turn == 1 else 1
                     st.rerun()
 
