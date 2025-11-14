@@ -1,3 +1,5 @@
+
+print("DEBUG VERSION: 1")
 import streamlit as st
 
 # --- Page config ---
